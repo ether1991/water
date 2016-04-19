@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<title>Water Statistics</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport"
+	content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+ <link href="dojotoolkit/dojox/mobile/themes/android/android-app.css" rel="stylesheet">
+<script type="text/javascript" src="dojotoolkit/dojox/mobile/deviceTheme.js"></script>
+<style type="text/css">
+	/* for 13px on holodark as well */
+	.mblBlueButton, .mblRedButton {
+		font-size: 13px;
+	}
+	body { -ms-touch-action: none; }
+	
+	
+	.mblRedButton{float:left;}
+	table.dojoxLegendNode{float:right;border:1px solid black;margin-right:50px;} 
+	p.clear {clear:both;}
+	.dojoxLegendText {color:black;}
+</style>
+<script type="text/javascript" src="dojotoolkit/dojo/dojo.js" data-dojo-config="parseOnLoad:true, async:true, mblAlwaysHideAddressBar: true, mblAlwaysResizeOnTransition: true, canvasEvents:false"></script>
+<script type="text/javascript" src="day.js" charset="utf-8"></script>
+</head>
+<!--windowResize函数用于解决图表纵向适应屏幕缩放-->
+<body onresize="windowResize();">
+	
+	<div id="view2" >
+	
+		<div id="container"><!--图表主体部分-->
+
+			<!--图表上部数据数值显示部分和切换按钮-->
+			<div id="info" style="margin-left:2px; font-family:微软雅黑; color: green; ">
+                日期: <font color="#00F" style="font-weight:bold" id="date">00:00:00</font><br/>
+				<!--data1: <font width="45px" color="#FFA54F" id="data1"></font>
+                data2: <font width="45px" color="#FFA54F" id="data2"></font><br/>-->
+				实际&nbsp; <font width="45px" color="#FFA54F" id="data3"></font>
+				预测&nbsp; <font width="45px" color="#FFA54F" id="data5"></font>            	
+			</div> 
+			<div style="margin-left:2px;margin-top:5px;font-weight: bolder; color: black; ">
+			<!--3种模式的切换按钮，1. data indicator：可以在页面拖动，同时会有指示线和相应数据的变化；2.zoom&pan:可以鼠标左键单击拖动，选择部分区域放大;3.no interaction:普通图表页面，不允许缩放和拖动-->
+			<button data-dojo-type="dojox/mobile/Button" class="mblRedButton"
+				id="indicatorMode" duration="0" style="width: 0px; height: 0px"></button>	
+		<!--	&nbsp;&nbsp;模式切换（滑动/伸缩/普通）-->
+			 <div id="legend1" style="width: 300px; height: 240px;"></div>
+			</div>
+			
+			<p class="clear">
+           
+			<div data-dojo-type="dojox/charting/widget/Chart"
+				margins="{ l: 0, r: 0, t: 10, b: 0 }" theme="customClaroTheme"
+				style="-webkit-user-select: none; outline: none"
+				id="stockChart"><!--引入dojo中图表模板，定义margins、主题、风格、id-->
+				
+				<!--x坐标轴，enableCache：设置不允许缓存；htmlLabels：没有html标签；font：字体样式；fixUpper？，includeZero：横轴包含0；majorTickStep：横轴每一步长度为24；labelFunc：调用src.js中的timeLabelFunction函数-->
+				<div class="axis" name="x" enableCache="false" htmlLabels="false" 
+					 min="1" max="24" title="时间(小时)" titlePos="bottom"	titleOrientation="away" titleFont="normal normal normal 10pt Arial"  titleFontColor="black" includeZero="false" font="normal normal normal 8pt Arial black"
+					majorTickStep="2"  labelSizeChange="true" labelFunc="timeLabelFunction" ></div>
+				
+				<!--y坐标轴，vertical：纵向；包含0；font：字体样式  majorTickStep：纵坐标刻度间隔  min：纵坐标最小值 max：纵坐标最大值 majorTickStep：刻度值间隔-->
+				<div class="axis" name="y" vertical="true" min="20" max="25.2" majorTickStep="0.5"  title="水位(米)" titlePos="left"
+					titleFont="normal normal normal 10pt Arial"  titleFontColor="black"
+					font="normal normal normal 8pt Arial black"></div>
+				<!--y2坐标轴，纵向，包含0，不可见，主要用于-->
+				<div class="axis" name="y2" vertical="true" min="0"
+					leftBottom="false" type="Invisible"
+					font="italic normal normal 8pt Helvetica"></div>
+				<!--用于在图表中画线-->
+				<div class="plot" name="volumePlot" 
+					enableCache="true" vAxis="y" markers="true"></div>
+				<!--用于在图表中画区域-->
+				<div class="plot" name="default" type="Areas"></div>				
+			
+			</div>
+			
+			
+			  
+		</div>
+		<div id="touchLabel"
+			style="display: none; background-color: white; border: 1px solid #333333; position: absolute; top: 150px; left: 80px; right: 80px; text-align: center; font-size: 16pt; font-weight: bolder; color: #333333; margin-left:80px;"></div>
+		
+	</div>
+	<!--windowResize函数主要解决图表对于屏幕纵向伸缩的适应-->
+    <script>
+		function windowResize(){
+		<!--横向显示区域参数-->
+		var w=window.innerWidth
+			|| document.documentElement.clientWidth
+			|| document.body.clientWidth;
+		<!--纵向显示区域参数-->
+		var h=window.innerHeight
+			|| document.documentElement.clientHeight
+			|| document.body.clientHeight;
+
+        <!--对纵向图表的长度按照显示区域变化而变化，从而适应纵向伸缩-->
+		document.getElementById("stockChart").style.height=h-110 + "px";
+		}
+	</script>
+	<!--刷新一次-->
+	 <script>
+	window.onload=function(){
+		if (location.href.indexOf("?xyz=")<0)
+		{
+			location.href=location.href+"?xyz="+Math.random();
+		}
+	}
+	</script>
+	 
+</body>
+</html>

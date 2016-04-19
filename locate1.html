@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+ <link href="dojotoolkit/dojox/mobile/themes/android/android-app.css" rel="stylesheet">
+<script type="text/javascript" src="dojotoolkit/dojox/mobile/deviceTheme.js"></script>
+<style type="text/css">
+	/* for 13px on holodark as well */
+	.mblBlueButton, .mblRedButton {
+		font-size: 13px;
+	}
+	body { -ms-touch-action: none; }	
+	.mblRedButton{float:left;}
+	table.dojoxLegendNode{float:right;border:1px solid black;margin-right:50px;} 
+	p.clear {clear:both;}
+	.dojoxLegendText {color:black;}
+</style>
+<script type="text/javascript" src="dojotoolkit/dojo/dojo.js" data-dojo-config="parseOnLoad:true, async:true, mblAlwaysHideAddressBar: true, mblAlwaysResizeOnTransition: true, canvasEvents:false"></script>
+	<script src="http://api.map.baidu.com/library/GeoUtils/1.2/src/GeoUtils_min.js" type="text/javascript"></script>
+
+	<style type="text/css">
+		body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+	</style>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=eD2SqFRDWrnxlD8U5sYZL5IQ"></script>
+	<title>淤泥查询</title>
+</head>
+<body>
+	<div id="allmap"></div>
+    <p id="aa"></p>
+</body>
+</html>
+<script type="text/javascript">
+	// 百度地图API功能
+	var map = new BMap.Map("allmap");
+	var point = new BMap.Point(113.915093,22.695745);
+	map.centerAndZoom(point, 15);
+	
+	//创建淤泥图层
+	var pt = new BMap.Point(113.920087,22.695201);
+    var myIcon = new BMap.Icon("http://1.503581960.sinaapp.com/yuni112.png", new BMap.Size(484,498));
+	var marker2 = new BMap.Marker(pt,{icon:myIcon});  // 创建标注
+	map.addOverlay(marker2); // 将标注添加到地图中
+    
+    map.addEventListener("click",function(){
+        var geolocation = new BMap.Geolocation();
+		geolocation.getCurrentPosition(function(r){
+				if(this.getStatus() == BMAP_STATUS_SUCCESS){
+					var mk = new BMap.Marker(r.point);
+					map.addOverlay(mk);
+					map.panTo(r.point);
+            		alert('您的位置：'+r.point.lng+','+r.point.lat+','+'淤泥厚度为：'+'0.5'+'\n'+'如果定位精度不能满足您的要求，请打开手机的定位功能再次刷新！');
+                    
+                    //判断当前位置是否在石岩水库范围内右下角的点113.930987,22.677575
+                    if (r.point.lng>113.930987||r.point.lat>22.677575||r.point.lng<113.900085||r.point.lat<22.711717) {
+                    	alert("您当前不再水库范围内！");
+                    }
+                    else{
+						require(["dojox/data/CsvStore"],
+							function(CsvStore){
+								var dataStore = new CsvStore({url: "data/day.csv"});  //csv数据文件
+						
+								var processData = function(items, arg){
+								//items.reverse(); //将csv存储数据倒序排列
+								//currentData = [];
+								// data1 = [];
+								// data2 = [];
+								// data3 = [];
+								// rdata = [];
+								// rdata1 = [];
+								// dates = [];
+								
+								var lat,lon;
+								lat = r.point.lat;
+								lon = r.point.lng;
+								var mlat,mlon,mthin;
+								var item;
+								
+								for(var i = 0; i < items.length; i++){
+									// Reduce data size
+										item = {};
+									
+									//var value = dataStore.getValue(items[i], "data1");
+									//item.data1 = parseFloat(value);
+
+									//value = dataStore.getValue(items[i], "data2");
+									//item.data2 = parseFloat(value);
+									
+									value1 = dataStore.getValue(items[i], "lon");
+									item.data3 = parseFloat(value1);
+									//解决曲线连接到0的问题
+									
+									value2 = dataStore.getValue(items[i], "lat");
+									item.rdata = parseFloat(value2);
+									// alert("value"+value);
+									// if(i<3){
+									// 	alert('您的位置：'+r.point.lng+','+r.point.lat+','+'淤泥厚度为：'+'0.5'+'\n'+'如果定位精度不能满足您的要求，请打开手机的定位功能再次刷新！');
+									// }
+									value3 = dataStore.getValue(items[i], "thin");
+									item.rdata1 = parseFloat(value3);
+									
+									
+
+									if(i<1){
+										mlon = Math.abs(item.data3-lon);
+										mlat = Math.abs(item.rdata-lat);
+										mthin = item.rdata1;
+										alert("初始化");
+									}
+								
+									if(i>0){
+										mmlon = Math.abs(item.data3-lon);
+										mmlat = Math.abs(item.rdata-lat);
+										if((mmlon*mmlon+mmlat*mmlat)<(mlon*mlon+mlat*mlat)){
+											mthin=item.rdata1;
+											//alert(item.data3+";"+mmlon+";"+mmlat+";"+mthin);
+										}
+									}
+
+									// value = dataStore.getValue(items[i], "dates");
+									// item.dates = value;
+									
+									//存到数组当中
+									// data1.push(item.data1);
+									// data2.push(item.data2);
+									// data3.push(item.data3);
+									// rdata.push(item.rdata);
+									// rdata1.push(item.rdata1);
+									// dates.push(item.dates);
+							}
+							alert(mthin);
+							
+						};
+						
+						dataStore.fetch({onComplete: processData});  //读取数据
+					});
+				};
+
+            		// //设置制定点
+            		// var circle = new BMap.Circle(new BMap.Point(113.920087,22.695201),0.001);
+
+            		// //判断当前的点是否在指定范围内
+              //       if(!BMapLib.GeoUtils.isPointInCircle(r.point, circle)){
+              //       	alert("not in circle");
+              //       }
+
+
+                    //alert(BMapLib.GeoUtils.degreeToRad(120));
+                   
+                    //alert("如果定位精度不能满足您的要求，请打开手机的定位功能再次刷新！");
+                    // document.getElementById("aa").innerHTML = "经度坐标："+r.point.lng+" &nbsp;纬度坐标："+r.point.lat;
+				}
+				else {
+					alert('failed'+this.getStatus());
+				}        
+			},{enableHighAccuracy: true})        
+        
+    });
+</script>
+

@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<title>Water Statistics</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport"
+	content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+ <link href="dojotoolkit/dojox/mobile/themes/android/android-app.css" rel="stylesheet">
+ <script src="http://api.map.baidu.com/library/GeoUtils/1.2/src/GeoUtils_min.js" type="text/javascript"></script>
+
+	<style type="text/css">
+		body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+	</style>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=eD2SqFRDWrnxlD8U5sYZL5IQ"></script>
+<script type="text/javascript" src="dojotoolkit/dojox/mobile/deviceTheme.js"></script>
+<style type="text/css">
+	/* for 13px on holodark as well */
+	.mblBlueButton, .mblRedButton {
+		font-size: 13px;
+	}
+	body { -ms-touch-action: none; }
+	
+	
+	.mblRedButton{float:left;}
+	table.dojoxLegendNode{float:right;border:1px solid black;margin-right:50px;} 
+	p.clear {clear:both;}
+	.dojoxLegendText {color:black;}
+</style>
+<script type="text/javascript" src="dojotoolkit/dojo/dojo.js" data-dojo-config="parseOnLoad:true, async:true, mblAlwaysHideAddressBar: true, mblAlwaysResizeOnTransition: true, canvasEvents:false"></script>
+<script type="text/javascript" src="locate1.js" charset="utf-8"></script>
+</head>
+<!--windowResize函数用于解决图表纵向适应屏幕缩放-->
+<body>
+	<div id="allmap"></div>
+	
+</body>
+</html>
+<script type="text/javascript">
+	// 百度地图API功能
+	var map = new BMap.Map("allmap");
+	var point = new BMap.Point(113.915093,22.695745);
+	map.centerAndZoom(point, 15);
+	
+	//创建小狐狸
+	var pt = new BMap.Point(113.920087,22.695201);
+    var myIcon = new BMap.Icon("http://1.503581960.sinaapp.com/yuni112.png", new BMap.Size(484,498));
+	var marker2 = new BMap.Marker(pt,{icon:myIcon});  // 创建标注
+	map.addOverlay(marker2); // 将标注添加到地图中
+    
+    map.addEventListener("click",function(){
+        
+        var geolocation = new BMap.Geolocation();
+		geolocation.getCurrentPosition(function(r){
+				if(this.getStatus() == BMAP_STATUS_SUCCESS){
+					var mk = new BMap.Marker(r.point);
+					map.addOverlay(mk);
+					map.panTo(r.point);
+            		alert('您的位置：'+r.point.lng+','+r.point.lat+','+'淤泥厚度为：'+'0.5'+'\n'+'如果定位精度不能满足您的要求，请打开手机的定位功能再次刷新！');
+                    
+            		//设置制定点
+            		var circle = new BMap.Circle(new BMap.Point(113.920087,22.695201),0.001);
+
+            		//判断当前的点是否在指定范围内
+                    if(!BMapLib.GeoUtils.isPointInCircle(r.point, circle)){
+                    	alert("not in circle");
+                    }
+
+
+                    //alert(BMapLib.GeoUtils.degreeToRad(120));
+                   
+                    //alert("如果定位精度不能满足您的要求，请打开手机的定位功能再次刷新！");
+                    // document.getElementById("aa").innerHTML = "经度坐标："+r.point.lng+" &nbsp;纬度坐标："+r.point.lat;
+				}
+				else {
+					alert('failed'+this.getStatus());
+				}        
+			},{enableHighAccuracy: true})        
+        
+    });
+</script>
